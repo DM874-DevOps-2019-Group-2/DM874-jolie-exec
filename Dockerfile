@@ -21,7 +21,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -ldflags "-s" -a -installsuffix cgo -o mai
 # Final image
 FROM ubuntu:18.04
 # Needed packages 
-RUN apt update && apt upgrade -y && apt install -y iptables openjdk-11-jre vim
+RUN apt update && apt upgrade -y && apt install -y iptables openjdk-11-jre 
 
 # Final jolie stuff
 COPY --from=JolieBuild /jolie_executables /usr/lib/jolie_executables
