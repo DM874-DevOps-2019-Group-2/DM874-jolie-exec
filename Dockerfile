@@ -12,9 +12,8 @@ RUN java -jar jolie-1.8.2.jar -jh /jolie_home/ -jl /jolie_executables/
 FROM golang:1.13.5-alpine as goBuild
 
 RUN apk add git make
-COPY build/dependencies.txt dependencies.txt
-RUN cat dependencies.txt | xargs -I @ go get @
-COPY src/main.go main.go 
+COPY src/* .
+RUN go get
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags "-s" -a -installsuffix cgo -o main main.go
 
 
