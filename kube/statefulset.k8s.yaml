@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: jolie-exec
+spec:
+  replicas: 1
+  serviceName: "jolie-exec"
+  selector:
+    matchLabels:
+      app: jolie-exec
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: router
+    spec:
+      containers:
+        - name: jolie-exec-container
+          image: JOLIE_EXEC_IMAGE
+          imagePullPolicy: Always
+          envFrom:
+            - secretRef:
+                db-secrets
+          securityContext:
+            privileged: true
+          resources:
+            requests:
+              memory: "2Gi"
+              cpu: "500m"
+            limits:
+              memory: "4Gi"
+              cpu: "1000m"

@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	_ "github.com/lib/pq"
 	"github.com/segmentio/kafka-go"
 )
 
@@ -21,8 +22,8 @@ type Message struct {
 	MessageText   string
 }
 
-/*The EventSourcingStructure describes the format of input and output*/
-type EventSourcingStructure struct {
+/*The EventSourcingStruct describes the format of input and output*/
+type EventSourcingStruct struct {
 	MessageID           string
 	SessionID           string
 	SenderID            int
@@ -31,7 +32,7 @@ type EventSourcingStructure struct {
 	EventDestinations   map[string]string
 }
 
-func parseEventSourcingStructure(jsonBytes []byte) (*EventSourcingStructure, error) {
+func parseEventSourcingStructure(jsonBytes []byte) (*EventSourcingStruct, error) {
 
 	type InputMessage struct {
 		DestiantionID *int    `json:"destinationId"`
@@ -80,7 +81,7 @@ func parseEventSourcingStructure(jsonBytes []byte) (*EventSourcingStructure, err
 		}
 	}
 
-	result := new(EventSourcingStructure)
+	result := new(EventSourcingStruct)
 	result.MessageID = *decoded.MessageID
 	result.SessionID = *decoded.SessionID
 	result.SenderID = *decoded.SenderID
@@ -106,7 +107,7 @@ func runJolie(c chan string) {
 
 }
 
-func toJolie(program string, ess *EventSourcingStructure) {
+func toJolie(program string, ess *EventSourcingStruct) {
 
 }
 
@@ -158,7 +159,7 @@ func messageService(reader *kafka.Reader, db *sql.DB) {
 		// Check if reciever set up jolie script
 		var receivers []int = make([]int, len(eventSourcingStructure.MessageDestinations))
 		for _, destination := range eventSourcingStructure.MessageDestinations {
-			append(receivers, destination.DestinationID)
+			receivers = append(receivers, destination.DestinationID)
 		}
 
 	}
@@ -175,7 +176,7 @@ func main() {
 	dbPort := os.Getenv("DATABASE_PORT")
 	dbUser := os.Getenv("DATABASE_USER")
 	dbPassword := os.Getenv("DATABASE_PASSWORD")
-	dbName := os.Getenv("DATABASE_NAME")
+	dbName := os.Getenv("POSTGRES_DB")
 
 	db, err := dbConnect(dbHost, dbPort, dbUser, dbPassword, dbName)
 	if err != nil {

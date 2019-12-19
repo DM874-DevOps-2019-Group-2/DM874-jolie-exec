@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata: 
+  name: jolie-exec-config
+data: 
+  EXEC_CONSUMER_TOPIC: "jolie-exec-consumer-topic"
+  CONFIG_CONSUMER_TOPIC: "jolie-exec-config-consumer-topic"

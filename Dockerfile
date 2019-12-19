@@ -13,13 +13,13 @@ FROM golang:1.13.5-alpine as goBuild
 
 RUN apk add git make
 COPY build/dependencies.txt dependencies.txt
-RUN cat dependencies.txt | xargs -I @ go get -d -v @
+RUN cat dependencies.txt | xargs -I @ go get @
 COPY src/main.go main.go 
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags "-s" -a -installsuffix cgo -o main main.go
 
 
 # Final image
-FROM ubuntu:latest
+FROM ubuntu:18.04
 # Needed packages 
 RUN apt update && apt upgrade -y && apt install -y iptables openjdk-11-jre vim
 

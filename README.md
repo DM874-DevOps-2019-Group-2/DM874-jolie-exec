@@ -22,3 +22,8 @@ The service is configured through the apache-kafka topic given through the envir
   "target": "recv"
 }
 ```
+
+
+## Notes
+The user programs are limited through prlimit
+e.g. `prlimit --rss=536870912 --cpu=10 --pid <pid>` would limit the memory usage to 512MB and cpu time to 10 seconds
