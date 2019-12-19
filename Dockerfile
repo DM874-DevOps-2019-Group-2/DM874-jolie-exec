@@ -12,7 +12,8 @@ RUN java -jar jolie-1.8.2.jar -jh /jolie_home/ -jl /jolie_executables/
 FROM golang:1.13.5-alpine as goBuild
 
 RUN apk add git make
-COPY src/* ./
+COPY src/* /build/
+WORKDIR /build
 RUN go get
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags "-s" -a -installsuffix cgo -o main main.go
 
@@ -30,8 +31,8 @@ ENV JOLIE_HOME /usr/lib/jolie_home
 
 
 # Final go stuff
-COPY --from=goBuild /go/main /go/main
-RUN chmod +x /go/main
+COPY --from=goBuild /build/main jolie-exec
+RUN chmod +x jolie-exec
 
 
 RUN useradd -m -s /bin/bash -U no-internet
@@ -46,4 +47,4 @@ RUN chmod +x /etc/network/if-pre-up.d/iptables_no-internet_rule
 # Ensure no write permissions for user executing code
 RUN chown -R root /*  2>/dev/null || echo "[ COMPLETE ] chown -R root /*"
 
-CMD [ "sh", "-c", "./etc/network/if-pre-up.d/iptables_no-internet_rule && /go/main" ]
+CMD [ "sh", "-c", "./etc/network/if-pre-up.d/iptables_no-internet_rule && ./jolie-exec" ]
