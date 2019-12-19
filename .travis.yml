@@ -1,0 +1,14 @@
+language: minimal
+services:
+- docker
+before_install:
+- docker pull dm874/deploy
+stages:
+- build-publish
+- deploy
+jobs:
+  include:
+  - stage: build-publish
+    script: docker build -t jolie-exec . && sh deployment/publish_jolie_exec.sh
+  - stage: deploy
+    script: sh deployment/deploy_jolie_exec.sh

@@ -12,9 +12,9 @@ RUN java -jar jolie-1.8.2.jar -jh /jolie_home/ -jl /jolie_executables/
 FROM golang:1.13.5-alpine as goBuild
 
 RUN apk add git make
-COPY dependencies.txt dependencies.txt
+COPY build/dependencies.txt dependencies.txt
 RUN cat dependencies.txt | xargs -I @ go get -d -v @
-COPY main.go main.go 
+COPY src/main.go main.go 
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags "-s" -a -installsuffix cgo -o main main.go
 
 
@@ -37,8 +37,8 @@ RUN chmod +x /go/main
 
 RUN useradd -m -s /bin/bash -U no-internet
 
-COPY ni.sh /usr/bin/ni
-COPY iptables_no-internet_rule.sh /etc/network/if-pre-up.d/iptables_no-internet_rule
+COPY build/ni.sh /usr/bin/ni
+COPY build/iptables_no-internet_rule.sh /etc/network/if-pre-up.d/iptables_no-internet_rule
 
 RUN chmod +x /usr/bin/ni
 RUN chmod +x /etc/network/if-pre-up.d/iptables_no-internet_rule
