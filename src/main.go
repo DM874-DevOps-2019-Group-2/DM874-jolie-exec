@@ -13,6 +13,7 @@ import (
 
 	_ "github.com/lib/pq"
 	"github.com/segmentio/kafka-go"
+	"golang.org/x/sync/semaphore"
 )
 
 /*Message structure*/
@@ -103,8 +104,8 @@ func composeEventSourcingStruct() {
 
 }
 
-func runJolie(c chan string) {
-
+func runJolie(sem *semaphore.Weighted) {
+	sem.Acquire(context.TODO(), 1)
 }
 
 func toJolie(program string, ess *EventSourcingStruct) {
@@ -142,6 +143,8 @@ func configManager(reader *kafka.Reader, db *sql.DB) {
 
 func messageService(reader *kafka.Reader, db *sql.DB) {
 	ctx := context.Background()
+	semaphore := semaphore.NewWeighted(8)
+
 	for {
 		// Get a message
 		msg, err := reader.ReadMessage(ctx)
@@ -161,6 +164,9 @@ func messageService(reader *kafka.Reader, db *sql.DB) {
 		for _, destination := range eventSourcingStructure.MessageDestinations {
 			receivers = append(receivers, destination.DestinationID)
 		}
+
+		// TODO: execute only if db tells us to.
+		runJolie(semaphore)
 
 	}
 
