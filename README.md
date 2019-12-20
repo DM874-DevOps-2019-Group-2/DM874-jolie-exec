@@ -8,7 +8,8 @@ Allows users to write programs in the language [Jolie](https://jolie-lang.org) t
 
 To let the service know that a user adds or removes a script, configuration messages are used.
 
-The configuration messages should be provided through the kafka topic `"jolie-exec-config-consumer-topic"`, as defined in the Kubernetes ConfigMap located in `kube/config.k8s.yaml` The expected input is consistent with that described in `DM874-report/desc.md`:
+The configuration messages should be provided through the kafka topic `"jolie-exec-config-consumer-topic"`, as defined in the Kubernetes ConfigMap located in `kube/config.k8s.yaml`.
+
 
 To register a script to be run on incoming messages for user with `userID=42`, a message similar to below should be sent:
 
@@ -36,7 +37,7 @@ ___
 
 ### User messages
 
-The user messages should be provided through the kafka topic `"jolie-exec-consumer-topic"`, as defined in the Kubernetes ConfigMap located in `kube/config.k8s.yaml` The expected input is consistent with that described in `DM874-report/desc.md`:
+The user messages should be provided through the kafka topic `"jolie-exec-consumer-topic"`, as defined in the Kubernetes ConfigMap located in `kube/config.k8s.yaml`. The expected input is consistent with that described in `DM874-report/desc.md`:
 
 ```JSON
 {

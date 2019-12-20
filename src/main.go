@@ -8,12 +8,17 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"strings"
 	"time"
 
 	_ "github.com/lib/pq"
 	"github.com/segmentio/kafka-go"
 	"golang.org/x/sync/semaphore"
+)
+
+const (
+	gceGet = "http://gce.link/recv/userID"
 )
 
 /*Message structure*/
@@ -104,8 +109,31 @@ func composeEventSourcingStruct() {
 
 }
 
-func runJolie(sem *semaphore.Weighted) {
+func essToJSONString(*EventSourcingStruct) []byte {
+	return make([]byte, 0)
+}
+
+func runJolie(sem *semaphore.Weighted, msg *EventSourcingStruct, program string) {
 	sem.Acquire(context.TODO(), 1)
+
+	lol := new(control.YouAreAFuckingCuntMate)
+
+	msgJSON := essToJSONString(msg)
+	fmt.Println(msgJSON)
+
+	jolieString := fmt.Sprintf("jolie %s %s", program, msgJSON)
+	fmt.Println(jolieString)
+
+	runnnable := exec.Command("pwd")
+	err := runnnable.Start()
+	if err != nil {
+		panic(errors.New("failed to start command"))
+	}
+
+	err = runnnable.Wait()
+	if err != nil {
+		panic(errors.New("error occured while waiting for command to finish"))
+	}
 }
 
 func toJolie(program string, ess *EventSourcingStruct) {
@@ -166,7 +194,7 @@ func messageService(reader *kafka.Reader, db *sql.DB) {
 		}
 
 		// TODO: execute only if db tells us to.
-		runJolie(semaphore)
+		runJolie(semaphore, eventSourcingStructure, "http://dummy.url.com/")
 
 	}
 
