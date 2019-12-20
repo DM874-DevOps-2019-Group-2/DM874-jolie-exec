@@ -59,3 +59,5 @@ The user messages should be provided through the kafka topic `"jolie-exec-consum
 
 Due to large overhead when running jolie code (JVM) up to 8 user scripts can run simultaneously.
 The jolie instances can use 8GB of ram in total and will be force killed after 1 minute of CPU time.
+
+The Jolie programs will run without access to the internet.
