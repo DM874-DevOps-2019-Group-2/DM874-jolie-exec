@@ -14,6 +14,7 @@ import (
 	"golang.org/x/sync/semaphore"
 )
 
+/*Message TODO use new EventSourcingStruct*/
 type Message struct {
 	DestinationID int
 	MessageID     string
@@ -114,7 +115,7 @@ func runJolie(sem *semaphore.Weighted, msg *EventSourcingStruct) {
 	jolieString := fmt.Sprintf("jolie %s %s", program, msgJSON)
 	fmt.Println(jolieString)
 
-	program := getProgram(eventSourcingStruct.)
+	// program := getProgram()
 
 	// Run the code
 	runnnable := exec.Command("pwd")
