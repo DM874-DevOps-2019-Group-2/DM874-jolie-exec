@@ -2,29 +2,60 @@
 
 Allows users to write programs in the language [Jolie](https://jolie-lang.org) to run on their incoming messages.
 
-
-## Configuration (Kafka)
-The service is configured through the apache-kafka topic given through the environment variable `JOLIE_EXEC_CONFIG_TOPIC`
+## Kafka topics
 
 ### Configuration Messages
+
+To let the service know that a user adds or removes a script, configuration messages are used.
+
+The configuration messages should be provided through the kafka topic `"jolie-exec-config-consumer-topic"`, as defined in the Kubernetes ConfigMap located in `kube/config.k8s.yaml` The expected input is consistent with that described in `DM874-report/desc.md`:
+
+To register a script to be run on incoming messages for user with `userID=42`, a message similar to below should be sent:
+
 ```JSON
 {
-  "messageType": add,
+  "actionType": "enable",
   "userID": 42,
   "target": "recv",
 }
 ```
 
+To disable the script run on incoming messages for user with `userID=42`, a message similar to the following should be sent:
+
 ```JSON
 {
-  "messageType": remove,
+  "actionType": "disable",
   "userID": 42,
   "target": "recv"
 }
 ```
 
+In the future, replacing `"recv"` with `"send"` should allow control of scripts run on outgoing messages.
+
+___
+
+### User messages
+
+The user messages should be provided through the kafka topic `"jolie-exec-consumer-topic"`, as defined in the Kubernetes ConfigMap located in `kube/config.k8s.yaml` The expected input is consistent with that described in `DM874-report/desc.md`:
+
+```JSON
+{
+  "messageUid": "c0a630d2-8db3-4a03-9e19-7141582f37aa",
+  "sessionUid": "cf2bd7ca-ba13-40d9-8fb7-bab2064028d4",
+  "messageBody": "Hello, world!",
+  "senderId": 42,
+  "recipientIds": [12, 8],
+  "fromAutoReply": false,
+  "eventDestinations": {
+    "1": "TOPIC1",
+    "2": "TOPIC2"
+  }
+}
+```
 
 ## Notes
-The user programs are limited through prlimit
-e.g. `prlimit --rss=536870912 --cpu=10 --pid <pid>` would limit the memory usage to 512MB and cpu time to 10 seconds
-edit: not working for linux kernel > 2.4.30
+
+### Program limits
+
+Due to large overhead when running jolie code (JVM) up to 8 user scripts can run simultaneously.
+The jolie instances can use 8GB of ram in total and will be force killed after 1 minute of CPU time.
