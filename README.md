@@ -16,7 +16,7 @@ To register a script to be run on incoming messages for user with `userID=42`, a
 ```JSON
 {
   "actionType": "enable",
-  "userID": 42,
+  "userId": 42,
   "target": "recv",
 }
 ```
@@ -26,7 +26,7 @@ To disable the script run on incoming messages for user with `userID=42`, a mess
 ```JSON
 {
   "actionType": "disable",
-  "userID": 42,
+  "userId": 42,
   "target": "recv"
 }
 ```
@@ -62,3 +62,7 @@ Due to large overhead when running jolie code (JVM) up to 8 user scripts can run
 The jolie instances can use 8GB of ram in total and will be force killed after 1 minute of CPU time.
 
 The Jolie programs will run without access to the internet.
+
+### Minimal example
+
+A minimal example of a valid program can be found in `examples/minimal.ol`.

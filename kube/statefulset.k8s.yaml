@@ -15,13 +15,20 @@ spec:
       labels:
         app: router
     spec:
-      containers:
-        - name: jolie-exec-container
-          image: JOLIE_EXEC_IMAGE
+      initContainers:
+        - name: migrations-container
+          image: dm875/jolie-exec-migrations
           imagePullPolicy: Always
           envFrom:
             - secretRef:
-                db-secrets
+              name: db-secrets
+      containers:
+        - name: jolie-exec-container
+          image: dm874/jolie-exec:latest
+          imagePullPolicy: Always
+          envFrom:
+            - secretRef:
+                name: db-secrets
           securityContext:
             privileged: true
           resources:

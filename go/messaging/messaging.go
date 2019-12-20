@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os/exec"
 
+	"cloud.google.com/go/storage"
 	"github.com/segmentio/kafka-go"
 	"golang.org/x/sync/semaphore"
 )
@@ -100,7 +101,11 @@ func essToJSONString(*EventSourcingStruct) []byte {
 	return make([]byte, 0)
 }
 
-func runJolie(sem *semaphore.Weighted, msg *EventSourcingStruct, program string) {
+func getProgram(userID int, direction string) {
+	// GCS stuff
+}
+
+func runJolie(sem *semaphore.Weighted, msg *EventSourcingStruct) {
 	sem.Acquire(context.TODO(), 1)
 
 	msgJSON := essToJSONString(msg)
@@ -109,6 +114,9 @@ func runJolie(sem *semaphore.Weighted, msg *EventSourcingStruct, program string)
 	jolieString := fmt.Sprintf("jolie %s %s", program, msgJSON)
 	fmt.Println(jolieString)
 
+	program := getProgram(eventSourcingStruct.)
+
+	// Run the code
 	runnnable := exec.Command("pwd")
 	err := runnnable.Start()
 	if err != nil {
@@ -134,6 +142,12 @@ func MessageService(reader *kafka.Reader, db *sql.DB) {
 	ctx := context.Background()
 	semaphore := semaphore.NewWeighted(8)
 
+	client, err := storage.NewClient(ctx)
+	if err != nil {
+		// TODO: Handle error
+	}
+	fmt.Println(client)
+
 	for {
 		// Get a message
 		msg, err := reader.ReadMessage(ctx)
@@ -154,7 +168,8 @@ func MessageService(reader *kafka.Reader, db *sql.DB) {
 			receivers = append(receivers, destination.DestinationID)
 		}
 
-		// TODO: execute only if db tells us to.
+
+		// TODO: database stuff
 		runJolie(semaphore, eventSourcingStructure, "http://dummy.url.com/")
 
 	}

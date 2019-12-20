@@ -5,12 +5,17 @@ before_install:
 - docker pull dm874/deploy
 stages:
 - build-publish
-- deploy
+- deploy-migrations
+- deploy-app
 jobs:
   include:
   - stage: build-publish
     script: docker build -t jolie-exec . && sh deployment/publish_jolie_exec.sh
-  - stage: deploy
+  - stage: build-publish
+    script: docker build -t migrations migrations/ && sh deployment/publish_migrations.sh
+  - stage: deploy-migrations
+    script: sh deployment/deploy_migrations.sh
+  - stage: deploy-app
     script: sh deployment/deploy_jolie_exec.sh
 env:
   global:
