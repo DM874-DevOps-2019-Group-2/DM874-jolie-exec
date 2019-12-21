@@ -17,7 +17,7 @@ To register a script to be run on incoming messages for user with `userID=42`, a
 {
   "actionType": "enable",
   "userId": 42,
-  "target": "recv",
+  "target": "recv"
 }
 ```
 
@@ -51,15 +51,69 @@ The user messages should be provided through the kafka topic `"jolie-exec-consum
 }
 ```
 
-## Notes
+## User Defined Jolie Scripts
 
-### Program limits
+### Limits
 
 Due to large overhead when running jolie code (JVM) up to 8 user scripts can run simultaneously.
-The jolie instances can use 8GB of ram in total and will be force killed after 1 minute of CPU time.
+The jolie instances can use 8GB of ram in total and will be force killed after 15 seconds.
 
 The Jolie programs will run without access to the internet.
 
-### Minimal example
+### Minimal Example
 
 A minimal example of a valid program can be found in `examples/minimal.ol`.
+
+### API Legend
+- `<MESSAGE BODY>` is a string that should be able to hold messages of up to 10 MB
+- `<USER ID>` is the ID of a user
+- `<ACTION>` is either `"forward"` or `"drop"`
+
+### API for Outbound Message Scripts
+
+Input is given as a JSON object via the first command line argument (`args[0]`) to user scripts for outbound messages. It has the following format:
+
+```JSON
+{
+  "messageBody": <MESSAGE BODY>,
+  "ownID": <USER ID>,
+  "recipientIDS": [<USER ID>, <USER ID>]
+}
+```
+
+The expected output for outbound message scripts is a JSON object written to `stdout`. It should look like this:
+
+```JSON
+{
+  "messageBody": "..."
+}
+```
+
+
+### API for Inbound Message Scripts
+
+Input is given as a JSON object via the first command line argument (`args[0]`) to user scripts for inbound messages. It has the following format:
+
+```JSON
+{
+  "messageBody": <MESSAGE BODY>,
+  "ownID": <USER ID>,
+  "senderID": <USER ID>,
+  "recipientIDS": [<USER ID>, ...]
+}
+```
+
+The expected output for inbound message scripts is a JSON object written to `stdout`. It should look like this:
+
+```JSON
+{
+  "action": <ACTION>,
+  "reply": [
+    {
+      "to": <USER ID>,
+      "message": <MESSAGE BODY>
+    },
+    ...
+  ]
+}
+```
