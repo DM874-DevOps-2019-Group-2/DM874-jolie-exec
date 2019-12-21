@@ -17,10 +17,6 @@ import (
 	"github.com/segmentio/kafka-go"
 )
 
-const (
-	gceGet = "http://gce.link/recv/userID"
-)
-
 
 func main() {
 	configTopic := os.Getenv("JOLIE_EXEC_CONFIG_TOPIC")
@@ -45,7 +41,7 @@ func main() {
 		Brokers:     listedBrokers,
 		Topic:       inTopic,
 		MinBytes:    10 << 10, // 10KiB
-		MaxBytes:    10 << 20, // 10 MiB
+		MaxBytes:    10 << 20, // 10MiB
 		MaxWait:     time.Millisecond * 100,
 		GroupID:     "jolie_exec_consumer_group",
 		StartOffset: kafka.LastOffset,
@@ -56,7 +52,7 @@ func main() {
 		Brokers:     listedBrokers,
 		Topic:       configTopic,
 		MinBytes:    10 << 10, // 10KiB
-		MaxBytes:    10 << 20, // 10 MiB
+		MaxBytes:    10 << 20, // 10MiB
 		MaxWait:     time.Millisecond * 100,
 		GroupID:     "jolie_exec_config_consumer_group", // Assumes all instances share same DB to be updated.
 		StartOffset: kafka.LastOffset,
