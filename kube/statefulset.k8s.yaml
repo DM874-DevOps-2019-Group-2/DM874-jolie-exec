@@ -13,15 +13,19 @@ spec:
   template:
     metadata:
       labels:
-        app: router
+        app: jolie-exec
     spec:
       initContainers:
         - name: migrations-container
-          image: dm875/jolie-exec-migrations
+          image: dm874/jolie-exec-migrations
           imagePullPolicy: Always
           envFrom:
             - secretRef:
-              name: db-secrets
+                name: db-secrets
+      volumes:
+        - name: google-cloud-key
+          secret:
+            secretName: gcs-key
       containers:
         - name: jolie-exec-container
           image: dm874/jolie-exec:latest
@@ -31,10 +35,22 @@ spec:
                 name: db-secrets
           securityContext:
             privileged: true
+          env:
+            - name: DEFAULT_PRODUCER_TOPIC
+              valueFrom:
+                configMapKeyRef:
+                  name: router-config
+                  key: ROUTE_MESSAGE_TOPIC
+          volumeMounts:
+            - name: google-cloud-key
+              mountPath: /var/secrets/google
+          env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /var/secrets/google/key.json
           resources:
             requests:
               memory: "16Gi"
-              cpu: "500m"
+              cpu: "1000m"
             limits:
               memory: "80Gi"
-              cpu: "1000m"
+              cpu: "8000m"

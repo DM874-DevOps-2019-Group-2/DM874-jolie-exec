@@ -20,11 +20,12 @@ import (
 func main() {
 	configTopic := os.Getenv("JOLIE_EXEC_CONFIG_TOPIC")
 	inTopic := os.Getenv("JOLIE_EXEC_CONSUMER_TOPIC")
+	newMessageOutTopic := os.Getenv("DEFAULT_PRODUCER_TOPIC")
 	kafkaBrokers := os.Getenv("KAFKA_BROKERS")
 	listedBrokers := strings.Split(kafkaBrokers, ",")
 
+
 	gcsBucketName := os.Getenv("JOLIE_EXEC_GCS_BUCKET_NAME")
-	gcsProjectID := os.Getenv("JOLIE_EXEC_GCS_PROJECT_ID")
 
 	dbHost := os.Getenv("DATABASE_HOST")
 	dbPort := os.Getenv("DATABASE_PORT")
@@ -64,6 +65,6 @@ func main() {
 
 	go control.ConfigManager(controlReader, db)
 
-	messaging.MessageService(messageReader, db, gcsProjectID, gcsBucketName)
+	messaging.MessageService(messageReader, db, gcsBucketName)
 
 }

@@ -5,6 +5,5 @@ metadata:
 data: 
   JOLIE_EXEC_CONSUMER_TOPIC: "jolie_exec_consumer_topic"
   JOLIE_CONFIG_CONSUMER_TOPIC: "jolie_exec_config_consumer_topic"
-  JOLIE_EXEC_GCS_PROJECT_ID: "jolie_exec"
   JOLIE_EXEC_GCS_BUCKET_NAME: "jolie_exec_program_storage"
   JOLIE_EXEC_DB_NAME: "jolie_exec_db"
