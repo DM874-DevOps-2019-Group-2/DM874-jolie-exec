@@ -68,6 +68,7 @@ A minimal example of a valid program can be found in `examples/minimal.ol`.
 - `<MESSAGE_BODY>` is a string that should be able to hold messages of up to 10 MB
 - `<USER_ID>` is the ID of a user
 - `<ACTION>` is either `"forward"` or `"drop"`
+- `...` denotes repition of the previous array element
 
 ### API for Outbound Message Scripts
 
@@ -85,7 +86,7 @@ The expected output for outbound message scripts is a JSON object written to `st
 
 ```JSON
 {
-  "messageBody": "..."
+  "messageBody": <MESSAGE_BODY>
 }
 ```
 
