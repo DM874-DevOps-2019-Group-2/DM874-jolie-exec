@@ -47,10 +47,7 @@ The user messages should be provided through the kafka topic `"jolie-exec-consum
   "senderId": 42,
   "recipientIds": [12, 8],
   "fromAutoReply": false,
-  "eventDestinations": {
-    "1": "TOPIC1",
-    "2": "TOPIC2"
-  }
+  "eventDestinations": ["TOPIC1", "TOPIC2"]
 }
 ```
 

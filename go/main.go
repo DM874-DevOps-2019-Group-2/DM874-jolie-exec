@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	//"./control"
+	// "./control"
 	"DM874-jolie-exec/control"
-	//"./messaging"
+	// "./messaging"
 	"DM874-jolie-exec/messaging"
 	// "./database"
 	"DM874-jolie-exec/database"
@@ -17,18 +17,21 @@ import (
 	"github.com/segmentio/kafka-go"
 )
 
-
 func main() {
 	configTopic := os.Getenv("JOLIE_EXEC_CONFIG_TOPIC")
 	inTopic := os.Getenv("JOLIE_EXEC_CONSUMER_TOPIC")
 	kafkaBrokers := os.Getenv("KAFKA_BROKERS")
 	listedBrokers := strings.Split(kafkaBrokers, ",")
 
+	gcsBucketName := os.Getenv("JOLIE_EXEC_GCS_BUCKET_NAME")
+	gcsProjectID := os.Getenv("JOLIE_EXEC_GCS_PROJECT_ID")
+
 	dbHost := os.Getenv("DATABASE_HOST")
 	dbPort := os.Getenv("DATABASE_PORT")
 	dbUser := os.Getenv("DATABASE_USER")
 	dbPassword := os.Getenv("DATABASE_PASSWORD")
-	dbName := os.Getenv("POSTGRES_DB")
+	dbName := os.Getenv("JOLIE_EXEC_DB_NAME")
+
 
 	db, err := database.DBConnect(dbHost, dbPort, dbUser, dbPassword, dbName)
 	if err != nil {
@@ -61,6 +64,6 @@ func main() {
 
 	go control.ConfigManager(controlReader, db)
 
-	messaging.MessageService(messageReader, db)
+	messaging.MessageService(messageReader, db, gcsProjectID, gcsBucketName)
 
 }
