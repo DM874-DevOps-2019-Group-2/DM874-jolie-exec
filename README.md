@@ -65,8 +65,8 @@ The Jolie programs will run without access to the internet.
 A minimal example of a valid program can be found in `examples/minimal.ol`.
 
 ### API Legend
-- `<MESSAGE BODY>` is a string that should be able to hold messages of up to 10 MB
-- `<USER ID>` is the ID of a user
+- `<MESSAGE_BODY>` is a string that should be able to hold messages of up to 10 MB
+- `<USER_ID>` is the ID of a user
 - `<ACTION>` is either `"forward"` or `"drop"`
 
 ### API for Outbound Message Scripts
@@ -75,9 +75,9 @@ Input is given as a JSON object via the first command line argument (`args[0]`) 
 
 ```JSON
 {
-  "messageBody": <MESSAGE BODY>,
-  "ownID": <USER ID>,
-  "recipientIDS": [<USER ID>, <USER ID>]
+  "messageBody": <MESSAGE_BODY>,
+  "ownID": <USER_ID>,
+  "recipientIDS": [<USER_ID>, <USER_ID>]
 }
 ```
 
@@ -96,10 +96,10 @@ Input is given as a JSON object via the first command line argument (`args[0]`) 
 
 ```JSON
 {
-  "messageBody": <MESSAGE BODY>,
-  "ownID": <USER ID>,
-  "senderID": <USER ID>,
-  "recipientIDS": [<USER ID>, ...]
+  "messageBody": <MESSAGE_BODY>,
+  "ownID": <USER_ID>,
+  "senderID": <USER_ID>,
+  "recipientIDS": [<USER_ID>, ...]
 }
 ```
 
@@ -110,8 +110,8 @@ The expected output for inbound message scripts is a JSON object written to `std
   "action": <ACTION>,
   "reply": [
     {
-      "to": <USER ID>,
-      "message": <MESSAGE BODY>
+      "to": <USER_ID>,
+      "message": <MESSAGE_BODY>
     },
     ...
   ]
