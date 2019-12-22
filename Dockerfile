@@ -13,8 +13,9 @@ FROM golang:1.13.5-alpine as goBuild
 
 RUN apk add git
 COPY go /build/
+WORKDIR /build/messaging
+RUN go test
 WORKDIR /build
-RUN ls -r
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags "-s" -a -installsuffix cgo -o main
 
 
