@@ -302,6 +302,7 @@ func runJolieReceiver(pathToFile string, userID int, ess *EventSourcingStruct) {
 	if parsedOutput.Action == "drop" {
 		// Drop message
 	} else {
+		// Forward message
 		localESS := copyMessageForSingleUser(ess, userID)
 		dispatchMessage(localESS)
 	}
@@ -426,7 +427,15 @@ func dispatchMessage(ess *EventSourcingStruct) {
 		Topic:    topic,
 		Balancer: &kafka.LeastBytes{},
 	})
-	fmt.Println(writer)
+	defer writer.Close()
+
+	jsonBytes, err := json.Marshal(*ess)
+	if err != nil {
+		fmt.Println("[ error ] could not encode eventSourcingStruct as json for dispatch, skipping")
+		return
+	}
+
+	writer.WriteMessages(context.Background(), kafka.Message{Value: jsonBytes})
 
 }
 
@@ -441,6 +450,7 @@ func handleSender(ess *EventSourcingStruct) { // WARNING: MODIFIES INPUT STRUCT
 	if err != nil {
 		// Do nothing
 	}
+	// Thats all
 }
 
 /*MessageService continuoisly reads and handles configuration messages from kafka*/
@@ -486,7 +496,11 @@ func MessageService(reader *kafka.Reader, db *sql.DB, bucketName string, brokers
 				// User has program, run in new goroutine
 				go handleReciever(recipient, eventSourcingStructure)
 			}
-
 		}
+
+		// Send to everyone who didn't use user programs
+		eventSourcingStructure.RecipientIDs = forwardToNoChange
+		dispatchMessage(eventSourcingStructure)
+
 	}
 }
