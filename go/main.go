@@ -17,27 +17,29 @@ import (
 	"github.com/segmentio/kafka-go"
 )
 
-func envWithPrint(env string) string {
+func warnEnv(env string) string {
 	val := os.Getenv(env)
-	fmt.Printf("%v: %v\n", env, val)
+	if val == "" {
+		fmt.Printf("[ warn ] empty environment variable: %v\n", env)
+	}
 	return val
 }
 
 func main() {
-	configTopic := envWithPrint("JOLIE_EXEC_CONFIG_TOPIC")
-	inTopic := envWithPrint("JOLIE_EXEC_CONSUMER_TOPIC")
-	newMessageOutTopic := envWithPrint("DEFAULT_PRODUCER_TOPIC")
-	kafkaBrokers := envWithPrint("KAFKA_BROKERS")
+	configTopic := warnEnv("JOLIE_EXEC_CONFIG_TOPIC")
+	inTopic := warnEnv("JOLIE_EXEC_CONSUMER_TOPIC")
+	newMessageOutTopic := warnEnv("DEFAULT_PRODUCER_TOPIC")
+	kafkaBrokers := warnEnv("KAFKA_BROKERS")
 	listedBrokers := strings.Split(kafkaBrokers, ",")
 
 
-	gcsBucketName := envWithPrint("JOLIE_EXEC_GCS_BUCKET_NAME")
+	gcsBucketName := warnEnv("JOLIE_EXEC_GCS_BUCKET_NAME")
 
-	dbHost := envWithPrint("DATABASE_HOST")
-	dbPort := envWithPrint("DATABASE_PORT")
-	dbUser := envWithPrint("POSTGRES_USER")
-	dbPassword := os.Getenv("POSTGRES_PASSWORD")
-	dbName := envWithPrint("JOLIE_EXEC_DB_NAME")
+	dbHost := warnEnv("DATABASE_HOST")
+	dbPort := warnEnv("DATABASE_PORT")
+	dbUser := warnEnv("POSTGRES_USER")
+	dbPassword := warnEnv("POSTGRES_PASSWORD")
+	dbName := warnEnv("JOLIE_EXEC_DB_NAME")
 
 
 	db, err := database.DBConnect(dbHost, dbPort, dbUser, dbPassword, dbName)
