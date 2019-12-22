@@ -28,7 +28,7 @@ func warnEnv(env string) string {
 func main() {
 	configTopic := warnEnv("JOLIE_EXEC_CONFIG_TOPIC")
 	inTopic := warnEnv("JOLIE_EXEC_CONSUMER_TOPIC")
-	newMessageOutTopic := warnEnv("DEFAULT_PRODUCER_TOPIC")
+	newMessageOutTopic := warnEnv("ROUTE_MESSAGE_TOPIC")
 	kafkaBrokers := warnEnv("KAFKA_BROKERS")
 	listedBrokers := strings.Split(kafkaBrokers, ",")
 

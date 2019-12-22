@@ -35,8 +35,10 @@ spec:
                 name: db-secrets
             - configMapRef:
                 name: jolie-exec-config
+            - configMapRef:
+                name: kafka-connection-config
           env:
-            - name: DEFAULT_PRODUCER_TOPIC
+            - name: ROUTE_MESSAGE_TOPIC
               valueFrom:
                 configMapKeyRef:
                   name: router-config
