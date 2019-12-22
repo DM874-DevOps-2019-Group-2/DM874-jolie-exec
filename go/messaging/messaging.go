@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"os/exec"
 
 	"cloud.google.com/go/storage"
 	"github.com/google/uuid"
@@ -76,12 +77,42 @@ type inboundMsgJolieOut struct {
 }
 
 // TODO?
-func parseJolieOutputIncoming(output []byte) {
-
+func parseJolieOutputIncoming(output []byte) *inboundMsgJolieOut {
+	var result = new(inboundMsgJolieOut)
+	err := json.Unmarshal(output, result)
+	if err != nil {
+		return nil
+	}
+	return result
 }
 
-func parseJolieOutputOutgoing() {
+func parseJolieOutputOutgoing(output []byte) *outboundMsgJolieOut {
+	var result = new(outboundMsgJolieOut)
+	err := json.Unmarshal(output, result)
+	if err != nil {
+		return nil
+	}
+	return result
+}
 
+func parseJolieInputIncoming(data *inboundMsgJolieIn) []byte {
+	result, err := json.Marshal(*data)
+	if err != nil {
+		fmt.Println("[ error ] unable to encode message for jolie argument")
+		return nil
+	}
+
+	return result
+}
+
+func parseJolieInputOutgoing(data *outboundMsgJolieIn) []byte {
+	result, err := json.Marshal(*data)
+	if err != nil {
+		fmt.Println("[ error ] unable to encode message for jolie argument")
+		return nil
+	}
+
+	return result
 }
 
 func parseEventSourcingStructure(jsonBytes []byte) (*EventSourcingStruct, error) {
@@ -140,73 +171,164 @@ func essToJSONString(ess *EventSourcingStruct) ([]byte, error) {
 * Runs user program on message.
 * If an error occurs, original message must be forwarded as is
  */
-func getAndRunUserProgram(userID int, msgDirection string, ess *EventSourcingStruct) {
-	// Get user program
-	// If we cannot access GCS, we simply forward the messages as if no program was set.
-	client, err := storage.NewClient(context.Background())
+func handleReciever(userID int, ess *EventSourcingStruct) {
+	path, err := downloadUserProgram(userID, false)
 	if err != nil {
-		forwardHelper(ess, userID, msgDirection)
-		return
+		// Failed to download the program.
+		// Act as if no program was expected.
 	}
 
-	validDirections := []string{"send", "recv"}
-	if !stringInSlice(msgDirection, validDirections) { // Fail gracefully
-		forwardHelper(ess, userID, msgDirection)
-		return
+	// The file is now downloaded, time to prepare the eventSourceStruct & actually run the code
+	runJolieReceiver(path, userID, ess)
+}
+
+/*
+ * downloadUserProgram downloads and saves a users program to disk, then returns the path to the file.
+ * Does not do any form of error recovery.
+ */
+func downloadUserProgram(userID int, sender bool) (string, error) {
+	var msgDirection string
+	if sender {
+		msgDirection = "send"
+	} else {
+		msgDirection = "recv"
+	}
+	// Get user program
+	// If we cannot access GCS, we simply forward the messages as if no program was set.
+	client, err := storage.NewClient(gcsContext)
+	if err != nil {
+		return "", errors.New("unable to start google cloud storage client")
 	}
 
 	// Save the file
 	bucket := client.Bucket(gcsBucketName)
 	filename := fmt.Sprintf("%d-%s.ol", userID, msgDirection)
-	rc, err := bucket.Object(filename).NewReader(context.Background())
+	rc, err := bucket.Object(filename).NewReader(gcsContext)
 	if err != nil {
-		forwardHelper(ess, userID, msgDirection)
-		return
+		return "", errors.New("error downloading user program")
 	}
 	defer rc.Close()
 
 	data, err := ioutil.ReadAll(rc)
 	if err != nil {
-		forwardHelper(ess, userID, msgDirection)
-		return
+		return "", errors.New("error reading user program")
 	}
 	absolutePath := fmt.Sprintf("/tmp/%s", filename)
 	err = ioutil.WriteFile(absolutePath, data, 644)
 	if err != nil {
-		forwardHelper(ess, userID, msgDirection)
-		return
+		return "", errors.New("error writing user program to disk")
 	}
-
-	// The file is now downloaded, time to prepare the eventSourceStruct & actually run the code
-	runJolie(absolutePath, msgDirection, ess)
+	return absolutePath, nil
 }
 
-func runJolie(pathToFile string, msgDirection string, eventSourceStruct *EventSourcingStruct) {
-	// Prepare structs
-	switch msgDirection {
-	case "send":
-		break
-	case "recv":
-		break
+func execJolie(pathToFile string, argument []byte) ([]byte, error) {
+	var subProcess *exec.Cmd
+	subProcess = exec.Command("timeout", "--kill-after=15s", "10s", "ni", "jolie", pathToFile, string(argument))
+	out, err := subProcess.Output()
+	if err != nil {
+		fmt.Printf("[ warn ] error running user script for user: %v\n", pathToFile)
+		return nil, err
 	}
+
+	return out, nil
+}
+
+func runJolieSender(pathToFile string, ess *EventSourcingStruct) error {
+	var jsonBytes []byte
+	var arg = outboundMsgJolieIn{
+		MessageBody:  ess.MessageBody,
+		OwnID:        ess.SenderID,
+		RecipientIDs: ess.RecipientIDs,
+	}
+	jsonBytes = parseJolieInputOutgoing(&arg)
+	if jsonBytes == nil {
+		return errors.New("unable to generate input for user program")
+	}
+
 	execSemaphore.Acquire(context.Background(), 1)
 	// Do the actual running of user code here, to avoid too much memory usage (JVM LUL)
-
+	output, err := execJolie(pathToFile, jsonBytes)
 	execSemaphore.Release(1)
+	if err != nil {
+		// Do nothing
+		return err
+	}
 
-	// Parse output
+	//Parse output
+	parsedMessage := parseJolieOutputOutgoing(output)
+	if parsedMessage == nil {
+		// Do nothing
+		return err
+	}
 
+	// Replace message body as we are sender
+	ess.MessageBody = parsedMessage.MessageBody
+
+	return nil
 }
 
-func forwardHelper(ess *EventSourcingStruct, userID int, msgDirection string) {
-	if userID == ess.SenderID {
-		forwardMessageToMultiple(ess, ess.RecipientIDs)
+/*
+ * In contrast to runJolieSender, runJolieReceiver must create new messages, but never modify the original.
+ */
+func runJolieReceiver(pathToFile string, userID int, ess *EventSourcingStruct) {
+	// Prepare structs
+	var jsonBytes []byte
+	var arg = inboundMsgJolieIn{
+		MessageBody:  ess.MessageBody,
+		SenderID:     ess.SenderID,
+		OwnID:        userID,
+		RecipientIDs: ess.RecipientIDs,
+	}
+	jsonBytes = parseJolieInputIncoming(&arg)
+	if jsonBytes == nil {
+		localESS := copyMessageForSingleUser(ess, userID)
+		dispatchMessage(localESS)
+		return
+		// TODO: forward message
+	}
+
+	execSemaphore.Acquire(context.Background(), 1)
+	// Do the actual running of user code here, to avoid too much memory usage (JVM LUL)
+	output, err := execJolie(pathToFile, jsonBytes)
+	execSemaphore.Release(1)
+	if err != nil {
+		localESS := copyMessageForSingleUser(ess, userID)
+		dispatchMessage(localESS)
+		// TODO: forward as if no program existed
+	}
+
+	// Parse output
+	parsedOutput := parseJolieOutputIncoming(output)
+	if parsedOutput.Action == "drop" {
+		// Drop message
 	} else {
-		forwardMessageToSingleUser(ess, userID)
+		localESS := copyMessageForSingleUser(ess, userID)
+		dispatchMessage(localESS)
+	}
+	replyList := parsedOutput.Reply
+	handleReplyList(userID, replyList, ess)
+}
+
+func handleReplyList(userID int, messageList []simpleMessage, originalESS *EventSourcingStruct) {
+	groups := make(map[string][]int)
+	for _, msg := range messageList {
+		groups[msg.Message] = append(groups[msg.Message], msg.To)
+	}
+
+	eventSourceStructures := make([]*EventSourcingStruct, len(groups))
+	for body, recipientList := range groups {
+		newESS, err := newMessage(originalESS.SessionUID, true, body, userID, recipientList)
+		if err == nil {
+			eventSourceStructures = append(eventSourceStructures, newESS)
+		}
+	}
+
+	for _, ess := range eventSourceStructures {
+		dispatchMessage(ess)
 	}
 }
 
-func forwardMessageToMultiple(ess *EventSourcingStruct, recipientIDs []int) {
+func copyMessageForMultipleUsers(ess *EventSourcingStruct, recipientIDs []int) *EventSourcingStruct {
 	newESS := new(EventSourcingStruct)
 	newESS.MessageUID = ess.MessageUID
 	newESS.SessionUID = ess.SessionUID
@@ -215,11 +337,10 @@ func forwardMessageToMultiple(ess *EventSourcingStruct, recipientIDs []int) {
 	newESS.FromAutoReply = ess.FromAutoReply
 	newESS.EventDestinations = ess.EventDestinations
 	newESS.RecipientIDs = recipientIDs
-
-	dispatchMessage(newESS)
+	return newESS
 }
 
-func forwardMessageToSingleUser(ess *EventSourcingStruct, userID int) {
+func copyMessageForSingleUser(ess *EventSourcingStruct, userID int) *EventSourcingStruct {
 	newESS := new(EventSourcingStruct)
 	newESS.MessageUID = ess.MessageUID
 	newESS.SessionUID = ess.SessionUID
@@ -228,6 +349,7 @@ func forwardMessageToSingleUser(ess *EventSourcingStruct, userID int) {
 	newESS.FromAutoReply = ess.FromAutoReply
 	newESS.EventDestinations = ess.EventDestinations
 	newESS.RecipientIDs = []int{userID}
+	return newESS
 }
 
 func userHasProgram(userID int, msgDirection string, db *sql.DB) (bool, error) {
@@ -264,34 +386,6 @@ func userHasProgram(userID int, msgDirection string, db *sql.DB) (bool, error) {
 
 	// If nothing failed yet, we are know that the user has a script registered for gived msg direction
 	return true, nil
-}
-
-/*
-* TODO: below is not quite right, instead, write functions for newReply, and modifyBody.
-*       Those functions should closer represent what is actually allowed through user programs.
-*       `newReply` should parse the reply list and send as few different kafka messages as viable.
-*       `modifyBody` should send a single kafka message, with the modified message body of a sender's msg
-*
- */
-func forkMessage(ess *EventSourcingStruct, direction string) (*EventSourcingStruct, error) {
-	switch direction {
-	case "send":
-		return newMessage(ess.SessionUID, false, ess.MessageBody, ess.SenderID, ess.RecipientIDs)
-	case "recv":
-		return newMessage(ess.SessionUID, true, ess.MessageBody, ess.SenderID, ess.RecipientIDs)
-	default:
-		// best-effort
-		fmt.Println("[ warn ] could not determine message goal, marking as auto-reply message")
-		return newMessage(ess.SessionUID, true, ess.MessageBody, ess.SenderID, ess.RecipientIDs)
-	}
-}
-
-func newReply() {
-
-}
-
-func modifyBody() {
-
 }
 
 func newMessage(sessionID string,
@@ -336,6 +430,19 @@ func dispatchMessage(ess *EventSourcingStruct) {
 
 }
 
+func handleSender(ess *EventSourcingStruct) { // WARNING: MODIFIES INPUT STRUCT
+	path, err := downloadUserProgram(ess.SenderID, true)
+	if err != nil {
+		// Do nothing
+		return
+	}
+
+	err = runJolieSender(path, ess)
+	if err != nil {
+		// Do nothing
+	}
+}
+
 /*MessageService continuoisly reads and handles configuration messages from kafka*/
 func MessageService(reader *kafka.Reader, db *sql.DB, bucketName string, brokers []string, newMessageOutTopic string) {
 	gcsContext = context.Background()
@@ -359,8 +466,14 @@ func MessageService(reader *kafka.Reader, db *sql.DB, bucketName string, brokers
 		fmt.Printf("Parsed event sourcing struct:\n%v\n", eventSourcingStructure)
 
 		// Check if sender set up jolie script for outgoing messages
-
-		// Replace message with script output if script was present
+		// Must be done in same thread & write to eventSourcingStructure directly
+		hasProgram, err := userHasProgram(eventSourcingStructure.SenderID, "send", db)
+		if err != nil {
+			// No one cares, continue as normal
+		}
+		if hasProgram {
+			handleSender(eventSourcingStructure)
+		}
 
 		// Check if reciever set up jolie script for incoming messages
 		var forwardToNoChange []int = make([]int, len(eventSourcingStructure.RecipientIDs))
@@ -371,7 +484,7 @@ func MessageService(reader *kafka.Reader, db *sql.DB, bucketName string, brokers
 				continue
 			} else {
 				// User has program, run in new goroutine
-				go getAndRunUserProgram(recipient, "recv", eventSourcingStructure)
+				go handleReciever(recipient, eventSourcingStructure)
 			}
 
 		}
