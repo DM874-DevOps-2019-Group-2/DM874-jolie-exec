@@ -52,5 +52,7 @@ RUN chmod +x /etc/network/if-pre-up.d/iptables_no-internet_rule
 
 # Ensure no write permissions for user executing code
 RUN chown -R root:root /*  2>/dev/null || echo "[ COMPLETE ] chown -R root /*"
+RUN chmod 700 /var
+
 
 CMD [ "sh", "-c", "./etc/network/if-pre-up.d/iptables_no-internet_rule && ./jolie-exec" ]

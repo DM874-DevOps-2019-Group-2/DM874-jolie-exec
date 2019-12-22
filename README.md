@@ -10,7 +10,6 @@ To let the service know that a user adds or removes a script, configuration mess
 
 The configuration messages should be provided through the kafka topic `"jolie-exec-config-consumer-topic"`, as defined in the Kubernetes ConfigMap located in `kube/config.k8s.yaml`.
 
-
 To register a script to be run on incoming messages for user with `userID=42`, a message similar to below should be sent:
 
 ```JSON
@@ -65,6 +64,7 @@ The Jolie programs will run without access to the internet.
 A minimal example of a valid program can be found in `examples/minimal.ol`.
 
 ### API Legend
+
 - `<MESSAGE_BODY>` is a string that should be able to hold messages of up to 10 MB
 - `<USER_ID>` is the ID of a user
 - `<ACTION>` is either `"forward"` or `"drop"`
@@ -78,7 +78,7 @@ Input is given as a JSON object via the first command line argument (`args[0]`) 
 {
   "messageBody": <MESSAGE_BODY>,
   "ownID": <USER_ID>,
-  "recipientIDS": [<USER_ID>, <USER_ID>]
+  "recipientIDs": [<USER_ID>, <USER_ID>]
 }
 ```
 
@@ -90,7 +90,6 @@ The expected output for outbound message scripts is a JSON object written to `st
 }
 ```
 
-
 ### API for Inbound Message Scripts
 
 Input is given as a JSON object via the first command line argument (`args[0]`) to user scripts for inbound messages. It has the following format:
@@ -100,7 +99,7 @@ Input is given as a JSON object via the first command line argument (`args[0]`) 
   "messageBody": <MESSAGE_BODY>,
   "ownID": <USER_ID>,
   "senderID": <USER_ID>,
-  "recipientIDS": [<USER_ID>, ...]
+  "recipientIDs": [<USER_ID>, ...]
 }
 ```
 
