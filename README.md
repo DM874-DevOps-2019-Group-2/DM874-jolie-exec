@@ -2,9 +2,47 @@
 
 Allows users to write programs in the language [Jolie](https://jolie-lang.org) to run on their incoming messages.
 
-## Kafka topics
+## Prerequisites 
 
-### Configuration Messages
+The service relies on a stack of tools to function properly.
+
+* postgresql database system
+* google cloud storage
+* kafka
+
+### Environment variables & Kubernetes yaml files
+
+The service relies on several environment variables being present. It is advised to take a look at the kubernetes configuration files `kube/config.k8s.taml` and `kube/statefulset.k8s.yaml`, but we will cover most of them in detail under their respective section.
+
+The kubernetes files are applied to the cluster through the command `kubectl apply -f {FILENAME}`, and is the only needed action to set up the service on kubernetes.
+The CI/CD pipeline will then build and deploy to kubernetes on successful build.
+
+### Postgres database
+
+The service rely on an already created database. The following environment variables are expected:
+
+* `DATABASE_HOST` IP / ExternalName of database system
+* `DATABASE_PORT` Port to acces postgres on
+* `JOLIE_EXEC_DB_NAME` Name of database the service should use (from `CREATE DATABASE` query)
+* `POSTGRES_USER` Postgres user to login with, must have permission to create, read from and write to `JOLIE_EXEC_DB_NAME`
+* `POSTGRES_PASSWORD` password to login to database with.
+
+In this project, we set up a kubernetes secret `db-secrets` which securely stores all except database name.
+
+`JOLIE_EXEC_DB_NAME` is defined in the kubernetes ConfigMap `kube/config.k8s.yaml`
+
+### Google Cloud Storage
+
+The service uses google cloud storage to retrieve user programs, which are expected to be uploaded by the webserver.
+
+The google cloud storage bucket to be used can be configured through the env variable `JOLIE_EXEC_GCS_BUCKET_NAME`.
+
+The credentials are stored as a secret file in kubernetes and mounted.
+Take a look at `kube/statefulset.k8s.yaml` under `env` and `volumeMounts`, or follow the guide at the [google cloud storage docs](https://cloud.google.com/storage/docs/reference/libraries#setting_up_authentication).
+
+### Kafka topics
+
+#### Configuration Messages
 
 To let the service know that a user adds or removes a script, configuration messages are used.
 
@@ -32,9 +70,7 @@ To disable the script run on incoming messages for user with `userID=42`, a mess
 
 In the future, replacing `"recv"` with `"send"` should allow control of scripts run on outgoing messages.
 
-___
-
-### User messages
+#### User messages
 
 The user messages should be provided through the kafka topic `"jolie-exec-consumer-topic"`, as defined in the Kubernetes ConfigMap located in `kube/config.k8s.yaml`. The expected input is consistent with that described in `DM874-report/desc.md`:
 
@@ -49,6 +85,8 @@ The user messages should be provided through the kafka topic `"jolie-exec-consum
   "eventDestinations": ["TOPIC1", "TOPIC2"]
 }
 ```
+
+----
 
 ## User Defined Jolie Scripts
 
