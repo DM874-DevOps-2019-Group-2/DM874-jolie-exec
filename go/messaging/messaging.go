@@ -385,7 +385,7 @@ func userHasProgram(userID int, msgDirection string, db *sql.DB) (bool, error) {
 		return false, errors.New("read invalid direction from database")
 	}
 
-	// If nothing failed yet, we are know that the user has a script registered for gived msg direction
+	// If nothing failed yet, we are know that the user has a script registered for given msg direction
 	return true, nil
 }
 
@@ -492,7 +492,7 @@ func MessageService(reader *kafka.Reader, db *sql.DB, bucketName string, brokers
 		}
 
 		// Check if reciever set up jolie script for incoming messages
-		var forwardToNoChange []int = make([]int, len(eventSourcingStructure.RecipientIDs))
+		var forwardToNoChange []int = make([]int, 0)
 		for _, recipient := range eventSourcingStructure.RecipientIDs {
 			hasProgram, err := userHasProgram(recipient, "recv", db)
 			if err != nil || !hasProgram {
