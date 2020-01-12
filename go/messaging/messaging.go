@@ -360,7 +360,7 @@ func userHasProgram(userID int, msgDirection string, db *sql.DB) (bool, error) {
 	}
 
 	// Check if entry is in database
-	queryString := "SELECT * FROM jolie_exec WHERE user_id=$1 AND direction=$2;"
+	queryString := "SELECT * FROM user_scripts_enabled WHERE user_id=$1 AND direction=$2;"
 	row := db.QueryRow(queryString, userID, msgDirection)
 	if row == nil {
 		// Shouldn't happen, but if it does, we continue running according to degradation of service
