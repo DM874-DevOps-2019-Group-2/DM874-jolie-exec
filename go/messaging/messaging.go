@@ -252,6 +252,8 @@ func runJolieSender(pathToFile string, ess *EventSourcingStruct) error {
 	if err != nil {
 		// Do nothing
 		return err
+	} else {
+		fmt.Printf("[ info ] Output from sender program: \n%v\n", output)
 	}
 
 	//Parse output
