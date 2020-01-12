@@ -421,6 +421,8 @@ func dispatchMessage(ess *EventSourcingStruct) {
 	var topic string
 	topic, ess.EventDestinations = ess.EventDestinations[1], ess.EventDestinations[1:]
 
+	fmt.Printf("[ info ] Attempting to dispatch message: \n%v\n", ess)
+
 	// Create a new kafka writer for the topic
 	writer := kafka.NewWriter(kafka.WriterConfig{
 		Brokers:  listedBrokers,
@@ -494,6 +496,7 @@ func MessageService(reader *kafka.Reader, db *sql.DB, bucketName string, brokers
 		for _, recipient := range eventSourcingStructure.RecipientIDs {
 			hasProgram, err := userHasProgram(recipient, "recv", db)
 			if err != nil || !hasProgram {
+				fmt.Printf("[ info ] Recipient %d has no program assigned, adding to forward as-is list.\n", recipient)
 				forwardToNoChange = append(forwardToNoChange)
 				continue
 			} else {
