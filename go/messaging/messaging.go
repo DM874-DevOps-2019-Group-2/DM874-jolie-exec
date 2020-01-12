@@ -467,6 +467,7 @@ func MessageService(reader *kafka.Reader, db *sql.DB, bucketName string, brokers
 		if err != nil {
 			fmt.Printf("[ERROR] %v\n", err)
 		}
+		fmt.Printf("Got message:\n%v\n", msg.Value)
 
 		// Parse the json
 		eventSourcingStructure, err := parseEventSourcingStructure(msg.Value)
