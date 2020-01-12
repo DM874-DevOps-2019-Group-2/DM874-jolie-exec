@@ -493,6 +493,8 @@ func MessageService(reader *kafka.Reader, db *sql.DB, bucketName string, brokers
 		if err != nil {
 			// Log error message
 			fmt.Printf("[ warn ] userHasProgram(sender) err output: %v\n", err)
+		} else {
+			fmt.Printf("[ info ] userHasProgram no error, should be true: %v\n", hasProgram)
 		}
 		if hasProgram {
 			handleSender(eventSourcingStructure)
