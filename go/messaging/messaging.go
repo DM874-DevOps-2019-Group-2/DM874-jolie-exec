@@ -421,7 +421,7 @@ func dispatchMessage(ess *EventSourcingStruct) {
 	var topic string
 	topic, ess.EventDestinations = ess.EventDestinations[1], ess.EventDestinations[1:]
 
-	fmt.Printf("[ info ] Attempting to dispatch message: \n%v\n", ess)
+	fmt.Printf("[ info ] Attempting to dispatch message: \n%v\n", *ess)
 
 	// Create a new kafka writer for the topic
 	writer := kafka.NewWriter(kafka.WriterConfig{
