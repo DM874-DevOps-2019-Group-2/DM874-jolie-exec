@@ -58,13 +58,13 @@ func parseControlMessage(jsonBytes []byte) (*ConfigMessageStruct, error) {
 }
 
 func enableUserScript(userID int, direction string, db *sql.DB) error {
-	queryString := "INSERT INTO jolie_exec VALUES ($1, $2);"
+	queryString := "INSERT INTO user_scripts_enabled VALUES ($1, $2);"
 	_, err := db.Exec(queryString, userID, direction)
 	return err
 }
 
 func disableUserScript(userID int, direction string, db *sql.DB) error {
-	queryString := "DELETE from jolie_exec WHERE user_id=$1 AND direction=$2;"
+	queryString := "DELETE from user_scripts_enabled WHERE user_id=$1 AND direction=$2;"
 	_, err := db.Exec(queryString, userID, direction)
 	return err
 }
