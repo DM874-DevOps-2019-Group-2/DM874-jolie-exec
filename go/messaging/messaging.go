@@ -485,7 +485,8 @@ func MessageService(reader *kafka.Reader, db *sql.DB, bucketName string, brokers
 		// Must be done in same thread & write to eventSourcingStructure directly
 		hasProgram, err := userHasProgram(eventSourcingStructure.SenderID, "send", db)
 		if err != nil {
-			// No one cares, continue as normal
+			// Log error message
+			fmt.Printf("[ warn ] userHasProgram(sender) err output: %v\n", err)
 		}
 		if hasProgram {
 			handleSender(eventSourcingStructure)
@@ -497,7 +498,7 @@ func MessageService(reader *kafka.Reader, db *sql.DB, bucketName string, brokers
 			hasProgram, err := userHasProgram(recipient, "recv", db)
 			if err != nil || !hasProgram {
 				if err != nil {
-					fmt.Printf("[ warn ] userHasProgram err output: %v\n", err)
+					fmt.Printf("[ warn ] userHasProgram(reciever) err output: %v\n", err)
 				}
 				fmt.Printf("[ info ] Recipient %d has no program assigned, adding to forward as-is list.\n", recipient)
 				forwardToNoChange = append(forwardToNoChange, recipient)
