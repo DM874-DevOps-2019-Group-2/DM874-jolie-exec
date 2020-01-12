@@ -496,6 +496,7 @@ func MessageService(reader *kafka.Reader, db *sql.DB, bucketName string, brokers
 		for _, recipient := range eventSourcingStructure.RecipientIDs {
 			hasProgram, err := userHasProgram(recipient, "recv", db)
 			if err != nil || !hasProgram {
+				fmt.Printf("[ warn ] userHasProgram err output: %v\n", err)
 				fmt.Printf("[ info ] Recipient %d has no program assigned, adding to forward as-is list.\n", recipient)
 				forwardToNoChange = append(forwardToNoChange, recipient)
 				continue
