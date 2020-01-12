@@ -40,8 +40,8 @@ type Message struct {
 
 /*The EventSourcingStruct describes the format of input and output*/
 type EventSourcingStruct struct {
-	MessageUID        string   `json:"messageUid"`
-	SessionUID        string   `json:"sessionUid"`
+	MessageUID        string   `json:"messageId"`
+	SessionUID        string   `json:"sessionId"`
 	FromAutoReply     bool     `json:"fromAutoReply"`
 	MessageBody       string   `json:"messageBody"`
 	SenderID          int      `json:"senderId"`
@@ -117,8 +117,8 @@ func parseJolieInputOutgoing(data *outboundMsgJolieIn) []byte {
 
 func parseEventSourcingStructure(jsonBytes []byte) (*EventSourcingStruct, error) {
 	type InputEventSourcingStruct struct {
-		MessageUID        *string   `json:"messageUid"`
-		SessionUID        *string   `json:"sessionUid"`
+		MessageUID        *string   `json:"messageId"`
+		SessionUID        *string   `json:"sessionId"`
 		FromAutoReply     *bool     `json:"fromAutoReply"`
 		MessageBody       *string   `json:"messageBody"`
 		SenderID          *int      `json:"senderId"`
@@ -467,6 +467,7 @@ func MessageService(reader *kafka.Reader, db *sql.DB, bucketName string, brokers
 		msg, err := reader.ReadMessage(context.Background())
 		if err != nil {
 			fmt.Printf("[ error ] %v\n", err)
+			continue
 		}
 		fmt.Printf("Got message:\n%v\n", msg.Value)
 
@@ -474,6 +475,7 @@ func MessageService(reader *kafka.Reader, db *sql.DB, bucketName string, brokers
 		eventSourcingStructure, err := parseEventSourcingStructure(msg.Value)
 		if err != nil {
 			fmt.Printf("[ error ] %v\n", err)
+			continue
 		}
 		fmt.Printf("Parsed event sourcing struct:\n%v\n", eventSourcingStructure)
 
