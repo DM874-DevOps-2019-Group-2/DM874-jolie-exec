@@ -497,7 +497,7 @@ func MessageService(reader *kafka.Reader, db *sql.DB, bucketName string, brokers
 			hasProgram, err := userHasProgram(recipient, "recv", db)
 			if err != nil || !hasProgram {
 				fmt.Printf("[ info ] Recipient %d has no program assigned, adding to forward as-is list.\n", recipient)
-				forwardToNoChange = append(forwardToNoChange)
+				forwardToNoChange = append(forwardToNoChange, recipient)
 				continue
 			} else {
 				// User has program, run in new goroutine
