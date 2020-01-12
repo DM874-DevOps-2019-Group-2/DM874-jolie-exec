@@ -442,6 +442,7 @@ func dispatchMessage(ess *EventSourcingStruct) {
 }
 
 func handleSender(ess *EventSourcingStruct) { // WARNING: MODIFIES INPUT STRUCT
+	fmt.Println("[ info ] Attempting to handle sender user program")
 	path, err := downloadUserProgram(ess.SenderID, true)
 	if err != nil {
 		// Log error
@@ -451,6 +452,7 @@ func handleSender(ess *EventSourcingStruct) { // WARNING: MODIFIES INPUT STRUCT
 
 	err = runJolieSender(path, ess)
 	if err != nil {
+		fmt.Printf("[ error ] Failed to run user program for user %v: \n%v\n", ess.SenderID, err)
 		// Do nothing
 	}
 	// Thats all
