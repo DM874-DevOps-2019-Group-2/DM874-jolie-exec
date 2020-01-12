@@ -82,7 +82,7 @@ func handleParsedConfigMessage(confMsg *ConfigMessageStruct, db *sql.DB) {
 		err = errors.New("invalid control message")
 	}
 	if err != nil {
-		fmt.Println("error handling control message, discarding")
+		fmt.Printf("[ error ] Unable to correctly handle control message. Error info: \n%v\n", err)
 	}
 }
 
