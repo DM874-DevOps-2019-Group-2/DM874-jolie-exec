@@ -356,6 +356,7 @@ func copyMessageForSingleUser(ess *EventSourcingStruct, userID int) *EventSourci
 }
 
 func userHasProgram(userID int, msgDirection string, db *sql.DB) (bool, error) {
+	fmt.Printf("[ info ] Checking user program precense: [%v,%v]\n", userID, msgDirection)
 	var validTargets = []string{"send", "recv"}
 	if !stringInSlice(msgDirection, validTargets) {
 		return false, errors.New("invalid message direction")
