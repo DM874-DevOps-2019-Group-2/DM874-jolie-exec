@@ -444,7 +444,8 @@ func dispatchMessage(ess *EventSourcingStruct) {
 func handleSender(ess *EventSourcingStruct) { // WARNING: MODIFIES INPUT STRUCT
 	path, err := downloadUserProgram(ess.SenderID, true)
 	if err != nil {
-		// Do nothing
+		// Log error
+		fmt.Printf("[ error ] Failed to download user program for user %v: \n%v\n", ess.SenderID, err)
 		return
 	}
 
