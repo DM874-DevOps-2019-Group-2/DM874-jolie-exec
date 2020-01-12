@@ -464,7 +464,7 @@ func MessageService(reader *kafka.Reader, db *sql.DB, bucketName string, brokers
 	for {
 		// Get a message
 		fmt.Println("[ info ] Waiting for regular message")
-		msg, err := reader.ReadMessage(gcsContext)
+		msg, err := reader.ReadMessage(context.Background())
 		if err != nil {
 			fmt.Printf("[ error ] %v\n", err)
 		}
