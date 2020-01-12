@@ -364,7 +364,7 @@ func userHasProgram(userID int, msgDirection string, db *sql.DB) (bool, error) {
 	row := db.QueryRow(queryString, userID, msgDirection)
 	if row == nil {
 		// Shouldn't happen, but if it does, we continue running according to degradation of service
-		return false, nil
+		return false, errors.New("database query returned nil")
 	}
 
 	var user int
@@ -377,7 +377,7 @@ func userHasProgram(userID int, msgDirection string, db *sql.DB) (bool, error) {
 		return false, err
 	} else if err == sql.ErrNoRows {
 		// If no row was returned, the user has no script set for given message direction
-		return false, nil
+		return false, errors.New("database query returned no rows")
 	}
 
 	// Check that what we read is expected
@@ -496,7 +496,9 @@ func MessageService(reader *kafka.Reader, db *sql.DB, bucketName string, brokers
 		for _, recipient := range eventSourcingStructure.RecipientIDs {
 			hasProgram, err := userHasProgram(recipient, "recv", db)
 			if err != nil || !hasProgram {
-				fmt.Printf("[ warn ] userHasProgram err output: %v\n", err)
+				if err != nil {
+					fmt.Printf("[ warn ] userHasProgram err output: %v\n", err)
+				}
 				fmt.Printf("[ info ] Recipient %d has no program assigned, adding to forward as-is list.\n", recipient)
 				forwardToNoChange = append(forwardToNoChange, recipient)
 				continue
