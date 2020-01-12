@@ -32,7 +32,6 @@ func main() {
 	kafkaBrokers := warnEnv("BOOTSTRAP_SERVERS")
 	listedBrokers := strings.Split(kafkaBrokers, ",")
 
-
 	gcsBucketName := warnEnv("JOLIE_EXEC_GCS_BUCKET_NAME")
 
 	dbHost := warnEnv("DATABASE_HOST")
@@ -41,7 +40,6 @@ func main() {
 	dbPassword := warnEnv("POSTGRES_PASSWORD")
 	dbName := warnEnv("JOLIE_EXEC_DB_NAME")
 
-
 	db, err := database.DBConnect(dbHost, dbPort, dbUser, dbPassword, dbName)
 	if err != nil {
 		fmt.Printf("[ERROR] %v", err)
@@ -49,6 +47,7 @@ func main() {
 	}
 	defer db.Close()
 
+	fmt.Println("[ info ] Setting up messageReader")
 	messageReader := kafka.NewReader(kafka.ReaderConfig{
 		Brokers:     listedBrokers,
 		Topic:       inTopic,
@@ -60,6 +59,7 @@ func main() {
 	})
 	defer messageReader.Close()
 
+	fmt.Println("[ info ] Setting up controlReader")
 	controlReader := kafka.NewReader(kafka.ReaderConfig{
 		Brokers:     listedBrokers,
 		Topic:       configTopic,
@@ -71,8 +71,12 @@ func main() {
 	})
 	defer controlReader.Close()
 
+	fmt.Println("[ success ] Reader setup complete")
+
+	fmt.Println("[ info ] starting configManager..")
 	go control.ConfigManager(controlReader, db)
 
+	fmt.Println("[ info ] starting MessageService..")
 	messaging.MessageService(messageReader, db, gcsBucketName, listedBrokers, newMessageOutTopic)
 
 }

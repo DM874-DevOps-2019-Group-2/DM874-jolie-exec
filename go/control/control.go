@@ -90,6 +90,7 @@ func handleParsedConfigMessage(confMsg *ConfigMessageStruct, db *sql.DB) {
 func ConfigManager(reader *kafka.Reader, db *sql.DB) {
 	ctx := context.Background()
 	for {
+		fmt.Println("[ info ] Waiting for control message")
 		message, err := reader.ReadMessage(ctx)
 		if err != nil {
 			fmt.Printf("error reading from configuration topic: \n%v\n", err)

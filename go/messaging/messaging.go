@@ -463,16 +463,17 @@ func MessageService(reader *kafka.Reader, db *sql.DB, bucketName string, brokers
 
 	for {
 		// Get a message
+		fmt.Println("[ info ] Waiting for regular message")
 		msg, err := reader.ReadMessage(gcsContext)
 		if err != nil {
-			fmt.Printf("[ERROR] %v\n", err)
+			fmt.Printf("[ error ] %v\n", err)
 		}
 		fmt.Printf("Got message:\n%v\n", msg.Value)
 
 		// Parse the json
 		eventSourcingStructure, err := parseEventSourcingStructure(msg.Value)
 		if err != nil {
-			fmt.Printf("[ERROR] %v\n", err)
+			fmt.Printf("[ error ] %v\n", err)
 		}
 		fmt.Printf("Parsed event sourcing struct:\n%v\n", eventSourcingStructure)
 
