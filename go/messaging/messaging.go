@@ -226,7 +226,7 @@ func downloadUserProgram(userID int, sender bool) (string, error) {
 func execJolie(pathToFile string, argument []byte) ([]byte, error) {
 	var subProcess *exec.Cmd
 	arg := string(argument)
-	arg = strings.Replace(arg, `"`, `\"`)
+	arg = strings.Replace(arg, `"`, `\"`, -1)
 	jolieCmd := fmt.Sprintf(`'jolie %s "%s"'`, pathToFile, arg)
 	subProcess = exec.Command("timeout", "--kill-after=15s", "10s", "ni", jolieCmd)
 	fmt.Printf("[ info ] Generated jolie command: %v\n", *subProcess)
