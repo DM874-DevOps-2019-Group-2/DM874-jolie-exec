@@ -1,3 +1,3 @@
 #!/bin/bash
 
-runuser -l no-internet -c "$1"
+su no-internet -c "$1"
