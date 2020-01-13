@@ -218,13 +218,14 @@ func downloadUserProgram(userID int, sender bool) (string, error) {
 	if err != nil {
 		return "", errors.New("error writing user program to disk")
 	}
-	fmt.Printf("[ debug ] Downloaded user program: %v\n%s\n", absolutePath, data)
+	fmt.Printf("[ info ] Downloaded user program: %v\n", absolutePath)
 	return absolutePath, nil
 }
 
 func execJolie(pathToFile string, argument []byte) ([]byte, error) {
 	var subProcess *exec.Cmd
 	subProcess = exec.Command("timeout", "--kill-after=15s", "10s", "ni", "jolie "+pathToFile+" \""+string(argument)+"\"")
+	fmt.Printf("[ info ] Generated jolie command: %v\n", *subProcess)
 	out, err := subProcess.Output()
 	if err != nil {
 		fmt.Printf("[ warn ] error running user script for user: %v\n%s\n", pathToFile, out)
