@@ -227,7 +227,7 @@ func execJolie(pathToFile string, argument []byte) ([]byte, error) {
 	subProcess = exec.Command("timeout", "--kill-after=15s", "10s", "ni", "jolie", pathToFile, string(argument))
 	out, err := subProcess.Output()
 	if err != nil {
-		fmt.Printf("[ warn ] error running user script for user: %v\n%v\n", pathToFile, out)
+		fmt.Printf("[ warn ] error running user script for user: %v\n%s\n", pathToFile, out)
 		return nil, err
 	}
 
