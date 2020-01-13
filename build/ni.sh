@@ -1,3 +1,3 @@
 #!/bin/bash
 
-su no-internet -c "$1"
+su no-internet -c "echo $1 && $1"
