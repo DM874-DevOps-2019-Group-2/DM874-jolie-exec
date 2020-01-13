@@ -5,18 +5,15 @@ before_install:
 - docker pull dm874/deploy
 stages:
 - build-publish
-- deploy-migrations
-- deploy-app
+- deploy
 jobs:
   include:
   - stage: build-publish
     script: docker build -t jolie-exec . && sh deployment/publish_jolie_exec.sh
   - stage: build-publish
     script: docker build -t migrations migrations/ && sh deployment/publish_migrations.sh
-  - stage: deploy-migrations
-    script: sh deployment/deploy_migrations.sh
-  - stage: deploy-app
-    script: sh deployment/deploy_jolie_exec.sh
+  - stage: deploy
+    script: sh deployment/deploy.sh
 env:
   global:
   - secure: Vt2KIY8Wfp1SrCQdeEFPU5Sy2d2g8McKqOfxH0T35U9G4pORKEotIWpw0AIRTO9oJzMGzUITyWLoAmk+c7pG6kSXLDBFS9LdrfojxogF0VdcCmEDkeYqSZrNtVshGE3+sPXVA00cg1hWt5yuH5X1lDZ2jl88U78TSIbfzjGSCiEAjFqsnPjtwrtNQPqn4XviWSuxnHfQTEgFzcZb8JrtphAqoRGYCwTpEnVXTemWwxH+aOUiyimFtmeJMqkaygr0/P6agqF1OoB+Nmq7qkPVPZGN/mPWuwFJz6Km9ly2EO8HRiuaoB1hSdmVBMUtcPOy0rcsM1MAI0Co/pnQxKBRqGGuUiyjM5tG0wSpc0aJvoAMNrWOIssG0O1aDL/d30JqfkChVuQvFmjTCFNMLYMRIc+rd+N3IOJJt6Yt1Njcp9hCLWKN5x6+4fKzb2L540/7j9Pliqe8D5tWR45HKa3HVW4T/wO/auJKCIizPFswUFNcVhlg/CGa7o4d6XVlHrw8GyW46S0mf5iuz7JXSDyolzYN0lnoR67aSaLMKo9vdbtLMoC+XXeYiius1ahQCn8NbmhwBsQRw3OEppPkkwvvEhZ8bQELP2jJntrT4xELzyKujWiwdKraqrqq2fk4mzfSCn/89cv3hqPJWyxhHUFgyGWMllxS8EMCfpYsXyqNkBY=
