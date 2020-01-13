@@ -12,6 +12,13 @@ then
 	exit 22
 fi
 
+docker run \
+        --env KUBERNETES_TOKEN \
+        --env DOCKER_IMAGE_SLUG=dm874/jolie-exec-migrations \
+        --env DOCKER_IMAGE_TAG=$TRAVIS_COMMIT \
+        --env SERVICE=jolie-exec \
+        --env CONTAINER=migrations-container \
+        dm874/deploy
 
 docker run \
 	--env KUBERNETES_TOKEN \
