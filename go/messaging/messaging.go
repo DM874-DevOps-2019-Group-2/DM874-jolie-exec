@@ -218,7 +218,7 @@ func downloadUserProgram(userID int, sender bool) (string, error) {
 	if err != nil {
 		return "", errors.New("error writing user program to disk")
 	}
-	fmt.Printf("[ debug ] Downloaded user program: %v\n%v\n", absolutePath, data)
+	fmt.Printf("[ debug ] Downloaded user program: %v\n%s\n", absolutePath, data)
 	return absolutePath, nil
 }
 
