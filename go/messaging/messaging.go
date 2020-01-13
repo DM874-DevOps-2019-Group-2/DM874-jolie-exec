@@ -375,10 +375,11 @@ func userHasProgram(userID int, msgDirection string, db *sql.DB) (bool, error) {
 
 	// Scan the query result to check if user registered a program
 	err := row.Scan(&user, &direction)
-	if err != sql.ErrNoRows {
+	if err != nil && err != sql.ErrNoRows {
 		// Some error occured different from the expected
+		fmt.Printf("[ error ] unexpected error scanning database row: %v\n", err)
 		return false, err
-	} else if err == sql.ErrNoRows {
+	} else if err != nil && err == sql.ErrNoRows {
 		// If no row was returned, the user has no script set for given message direction
 		return false, errors.New("database query returned no rows")
 	}
