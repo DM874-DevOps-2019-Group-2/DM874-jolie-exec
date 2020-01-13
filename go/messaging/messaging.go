@@ -230,7 +230,7 @@ func execJolie(pathToFile string, argument []byte) ([]byte, error) {
 	jolieCmd := fmt.Sprintf(`'jolie %s "%s"'`, pathToFile, arg)
 	subProcess = exec.Command("timeout", "--kill-after=15s", "10s", "ni", jolieCmd)
 	fmt.Printf("[ info ] Generated jolie command: %v\n", *subProcess)
-	out, err := subProcess.Output()
+	out, err := subProcess.CombinedOutput()
 	if err != nil {
 		fmt.Printf("[ warn ] error running user script for user: %v\n%s\n", pathToFile, out)
 		return nil, err
